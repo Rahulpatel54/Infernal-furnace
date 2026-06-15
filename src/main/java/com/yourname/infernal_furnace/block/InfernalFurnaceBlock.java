@@ -25,6 +25,7 @@ import net.minecraft.util.ItemActionResult;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
 import net.minecraft.entity.EquipmentSlot;
 
@@ -35,7 +36,6 @@ public class InfernalFurnaceBlock extends BlockWithEntity {
 
     public InfernalFurnaceBlock(Settings settings) {
         super(settings);
-        // Default blockstate: facing north, unlit
         setDefaultState(getStateManager().getDefaultState()
                 .with(FACING, Direction.NORTH)
                 .with(LIT, false));
@@ -46,7 +46,6 @@ public class InfernalFurnaceBlock extends BlockWithEntity {
         builder.add(FACING, LIT);
     }
 
-    // Place facing toward the player (vanilla furnace behavior)
     @Override
     public BlockState getPlacementState(net.minecraft.item.ItemPlacementContext ctx) {
         return getDefaultState().with(FACING, ctx.getHorizontalPlayerFacing().getOpposite());
@@ -57,7 +56,76 @@ public class InfernalFurnaceBlock extends BlockWithEntity {
         return BlockRenderType.MODEL;
     }
 
-    // Handle right-click — ignite with Flint & Steel, extinguish with shovel
+    // ── Particles & sounds (client-side, called every tick while chunk is loaded) ──
+    @Override
+    public void randomDisplayTick(BlockState state, World world, BlockPos pos, Random random) {
+        if (!state.get(LIT)) return;
+
+        Direction facing = state.get(FACING);
+
+        // Centre of the block
+        double cx = pos.getX() + 0.5;
+        double cy = pos.getY();
+        double cz = pos.getZ() + 0.5;
+
+        // Offset toward the front face (furnace mouth)
+        double fx = cx + facing.getOffsetX() * 0.52;
+        double fz = cz + facing.getOffsetZ() * 0.52;
+
+        // ── Smoke rising from the top (matches vanilla furnace) ──
+        world.addParticle(ParticleTypes.SMOKE,
+                cx + (random.nextDouble() - 0.5) * 0.4,
+                cy + 1.1,
+                cz + (random.nextDouble() - 0.5) * 0.4,
+                0, 0.07, 0);
+
+        // Occasional thick smoke puff
+        if (random.nextInt(3) == 0) {
+            world.addParticle(ParticleTypes.LARGE_SMOKE,
+                    cx + (random.nextDouble() - 0.5) * 0.3,
+                    cy + 1.05,
+                    cz + (random.nextDouble() - 0.5) * 0.3,
+                    0, 0.05, 0);
+        }
+
+        // ── Flame flickers from the furnace mouth ──
+        world.addParticle(ParticleTypes.FLAME,
+                fx + (random.nextDouble() - 0.5) * 0.15,
+                cy + 0.45 + random.nextDouble() * 0.2,
+                fz + (random.nextDouble() - 0.5) * 0.15,
+                0, 0.02, 0);
+
+        // ── Ash / ember pops (netherrack flavour) ──
+        if (random.nextInt(5) == 0) {
+            world.addParticle(ParticleTypes.ASH,
+                    cx + (random.nextDouble() - 0.5) * 0.6,
+                    cy + 0.9 + random.nextDouble() * 0.3,
+                    cz + (random.nextDouble() - 0.5) * 0.6,
+                    (random.nextDouble() - 0.5) * 0.02,
+                    0.02,
+                    (random.nextDouble() - 0.5) * 0.02);
+        }
+
+        // ── Rare lava pop (ember spitting from netherrack base) ──
+        if (random.nextInt(10) == 0) {
+            world.addParticle(ParticleTypes.LAVA,
+                    fx + (random.nextDouble() - 0.5) * 0.2,
+                    cy + 0.3,
+                    fz + (random.nextDouble() - 0.5) * 0.2,
+                    0, 0, 0);
+        }
+
+        // ── Ambient crackling sound (same cadence as vanilla furnace) ──
+        if (random.nextInt(24) == 0) {
+            world.playSound(
+                    pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5,
+                    SoundEvents.BLOCK_FURNACE_FIRE_CRACKLE,
+                    SoundCategory.BLOCKS,
+                    1.0f, 1.0f, false);
+        }
+    }
+
+    // ── Right-click: ignite / extinguish / open GUI ──
     @Override
     protected ItemActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos,
                                               PlayerEntity player, Hand hand, BlockHitResult hit) {
@@ -69,7 +137,6 @@ public class InfernalFurnaceBlock extends BlockWithEntity {
         if (!lit && stack.isOf(Items.FLINT_AND_STEEL)) {
             world.setBlockState(pos, state.with(LIT, true), Block.NOTIFY_ALL);
             world.playSound(null, pos, SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.BLOCKS, 1.0f, 1.0f);
-            // Spawn flame particles on the front face
             Direction facing = state.get(FACING);
             double fx = pos.getX() + 0.5 + facing.getOffsetX() * 0.5;
             double fy = pos.getY() + 0.5;
@@ -81,7 +148,6 @@ public class InfernalFurnaceBlock extends BlockWithEntity {
                         fz + (world.random.nextDouble() - 0.5) * 0.3,
                         0, 0.05, 0);
             }
-            // Damage the Flint & Steel
             stack.damage(1, player,
                     hand == Hand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
             return ItemActionResult.SUCCESS;
@@ -91,7 +157,6 @@ public class InfernalFurnaceBlock extends BlockWithEntity {
         if (lit && stack.isIn(ItemTags.SHOVELS)) {
             world.setBlockState(pos, state.with(LIT, false), Block.NOTIFY_ALL);
             world.playSound(null, pos, SoundEvents.BLOCK_FIRE_EXTINGUISH, SoundCategory.BLOCKS, 0.5f, 2.6f);
-            // Spawn smoke particles
             for (int i = 0; i < 8; i++) {
                 world.addParticle(ParticleTypes.LARGE_SMOKE,
                         pos.getX() + 0.5 + (world.random.nextDouble() - 0.5) * 0.6,
@@ -102,7 +167,7 @@ public class InfernalFurnaceBlock extends BlockWithEntity {
             return ItemActionResult.SUCCESS;
         }
 
-        // Otherwise open the furnace GUI
+        // Open GUI
         if (!player.isSneaking()) {
             NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
             if (screenHandlerFactory != null) {
