@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "infernal_furnace",
+  "version": "${version}",
+  "name": "Infernal Furnace",
+  "description": "Adds the Infernal Furnace — a fuel-free, all-purpose smelting block ignited with Flint & Steel.",
+  "authors": [
+    "YourName"
+  ],
+  "contact": {
+    "sources": "https://github.com/YourName/infernal_furnace"
+  },
+  "license": "MIT",
+  "icon": "assets/infernal_furnace/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.yourname.infernal_furnace.InfernalFurnaceMod"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.15.11",
+    "fabric-api": "*",
+    "minecraft": "~1.21.1"
+  }
+}
