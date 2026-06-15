@@ -2,6 +2,7 @@ package com.yourname.infernal_furnace.block.entity;
 
 import com.yourname.infernal_furnace.InfernalFurnaceMod;
 import com.yourname.infernal_furnace.block.InfernalFurnaceBlock;
+import com.yourname.infernal_furnace.mixin.AbstractFurnaceBlockEntityAccessor;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.AbstractFurnaceBlockEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -40,31 +41,19 @@ public class InfernalFurnaceBlockEntity extends AbstractFurnaceBlockEntity {
         if (world.isClient) return;
 
         boolean isLit = state.get(InfernalFurnaceBlock.LIT);
+        AbstractFurnaceBlockEntityAccessor accessor = (AbstractFurnaceBlockEntityAccessor) be;
 
         if (isLit) {
-            // Keep burn time permanently full so it never runs out
-            be.burnTime = 32767;
-            be.fuelTime = 32767;
-        } else {
-            // Unlit — zero out burn time so it won't smelt
-            be.burnTime = 0;
-            be.fuelTime = 0;
-        }
-
-        // Let AbstractFurnaceBlockEntity handle the actual smelting logic
-        // We call the parent tick only when lit — when unlit, nothing happens
-        if (isLit) {
+            // Let the parent do its smelting logic first (it decrements burnTime by 1)
             AbstractFurnaceBlockEntity.tick(world, pos, state, be);
+            // Then immediately restore burn time to max so it never runs out
+            accessor.setBurnTime(32767);
+            accessor.setFuelTime(32767);
         } else {
+            // Unlit — zero out burn time so smelting stops
+            accessor.setBurnTime(0);
+            accessor.setFuelTime(0);
             be.markDirty();
         }
-    }
-
-    // Make isBurning always return true when lit, so the GUI flame shows
-    @Override
-    public boolean isBurning() {
-        return this.world != null
-                && this.world.getBlockState(this.pos).contains(InfernalFurnaceBlock.LIT)
-                && this.world.getBlockState(this.pos).get(InfernalFurnaceBlock.LIT);
     }
 }

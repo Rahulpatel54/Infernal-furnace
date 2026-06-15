@@ -2,6 +2,7 @@ package com.yourname.infernal_furnace.block;
 
 import com.yourname.infernal_furnace.InfernalFurnaceMod;
 import com.yourname.infernal_furnace.block.entity.InfernalFurnaceBlockEntity;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
@@ -125,6 +126,11 @@ public class InfernalFurnaceBlock extends BlockWithEntity {
             }
         }
         return ActionResult.PASS;
+    }
+
+    @Override
+    public MapCodec<? extends BlockWithEntity> getCodec() {
+        return createCodec(InfernalFurnaceBlock::new);
     }
 
     @Override

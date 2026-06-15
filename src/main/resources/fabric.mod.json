@@ -18,6 +18,9 @@
       "com.yourname.infernal_furnace.InfernalFurnaceMod"
     ]
   },
+  "mixins": [
+    "infernal_furnace.mixins.json"
+  ],
   "depends": {
     "fabricloader": ">=0.15.11",
     "fabric-api": "*",
