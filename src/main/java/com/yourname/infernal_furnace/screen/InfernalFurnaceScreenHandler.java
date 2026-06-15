@@ -72,22 +72,24 @@ public class InfernalFurnaceScreenHandler extends ScreenHandler {
             ItemStack originalStack = slot.getStack();
             newStack = originalStack.copy();
 
-            // Output slot → player inventory
+            // Output slot (1) → player inventory (2–37)
             if (slotIndex == 1) {
                 if (!this.insertItem(originalStack, 2, 38, true)) {
                     return ItemStack.EMPTY;
                 }
                 slot.onQuickTransfer(originalStack, newStack);
             }
-            // Player inventory → input slot only
+            // Player inventory (2–37) → input slot (0)
             else if (slotIndex >= 2) {
                 if (!this.insertItem(originalStack, 0, 1, false)) {
                     return ItemStack.EMPTY;
                 }
             }
-            // Input slot → player inventory
-            else if (!this.insertItem(originalStack, 2, 38, false)) {
-                return ItemStack.EMPTY;
+            // Input slot (0) → player inventory (2–37)
+            else {
+                if (!this.insertItem(originalStack, 2, 38, false)) {
+                    return ItemStack.EMPTY;
+                }
             }
 
             if (originalStack.isEmpty()) {

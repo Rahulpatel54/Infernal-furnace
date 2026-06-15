@@ -1,5 +1,6 @@
 package com.yourname.infernal_furnace;
 
+import net.minecraft.resource.featuretoggle.FeatureFlags;
 import com.yourname.infernal_furnace.block.InfernalFurnaceBlock;
 import com.yourname.infernal_furnace.block.entity.InfernalFurnaceBlockEntity;
 import com.yourname.infernal_furnace.screen.InfernalFurnaceScreenHandler;
@@ -44,7 +45,7 @@ public class InfernalFurnaceMod implements ModInitializer {
         INFERNAL_FURNACE_SCREEN_HANDLER = Registry.register(
                 Registries.SCREEN_HANDLER,
                 Identifier.of("infernal_furnace", "infernal_furnace"),
-                new ScreenHandlerType<>(InfernalFurnaceScreenHandler::new, FeatureSet.empty())
+                new ScreenHandlerType<>(InfernalFurnaceScreenHandler::new, FeatureFlags.VANILLA_FEATURES)
         );
         // 1. Register Block
         Registry.register(Registries.BLOCK, Identifier.of(MOD_ID, "infernal_furnace"), INFERNAL_FURNACE_BLOCK);

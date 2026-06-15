@@ -44,9 +44,14 @@ public class InfernalFurnaceBlockEntity extends AbstractFurnaceBlockEntity {
         AbstractFurnaceBlockEntityAccessor accessor = (AbstractFurnaceBlockEntityAccessor) be;
 
         if (isLit) {
-            // Let the parent do its smelting logic first (it decrements burnTime by 1)
+            // Set burn time before vanilla tick runs
+            accessor.setBurnTime(32767);
+            accessor.setFuelTime(32767);
+
+            // Run vanilla furnace logic
             AbstractFurnaceBlockEntity.tick(world, pos, state, be);
-            // Then immediately restore burn time to max so it never runs out
+
+            // Restore again after vanilla decrements burn time
             accessor.setBurnTime(32767);
             accessor.setFuelTime(32767);
         } else {
