@@ -3,7 +3,9 @@
 build/
 out/
 !gradle/wrapper/gradle-wrapper.jar
-
+temp.txt
+infernal_furnace_mod_project.zip
+infernal_furnace_texture_pngs.zip
 # IDE
 .idea/
 *.iml

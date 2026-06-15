@@ -2,6 +2,7 @@ package com.yourname.infernal_furnace;
 
 import com.yourname.infernal_furnace.block.InfernalFurnaceBlock;
 import com.yourname.infernal_furnace.block.entity.InfernalFurnaceBlockEntity;
+import com.yourname.infernal_furnace.screen.InfernalFurnaceScreenHandler;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
@@ -14,11 +15,15 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroups;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
+import net.minecraft.resource.featuretoggle.FeatureSet;
+import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class InfernalFurnaceMod implements ModInitializer {
+
+    public static ScreenHandlerType<InfernalFurnaceScreenHandler> INFERNAL_FURNACE_SCREEN_HANDLER;
 
     public static final String MOD_ID = "infernal_furnace";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
@@ -36,6 +41,11 @@ public class InfernalFurnaceMod implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        INFERNAL_FURNACE_SCREEN_HANDLER = Registry.register(
+                Registries.SCREEN_HANDLER,
+                Identifier.of("infernal_furnace", "infernal_furnace"),
+                new ScreenHandlerType<>(InfernalFurnaceScreenHandler::new, FeatureSet.empty())
+        );
         // 1. Register Block
         Registry.register(Registries.BLOCK, Identifier.of(MOD_ID, "infernal_furnace"), INFERNAL_FURNACE_BLOCK);
 
